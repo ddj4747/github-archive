@@ -1,0 +1,15 @@
+token_env: GITHUB_TOKEN
+poll_interval: 1m
+data_root: data
+repositories:
+  - owner: octocat
+    name: Hello-World
+  - owner: octocat
+    name: Spoon-Knife
+    poll_interval: 15m
+users:
+  - login: octocat
+    discover_repositories: true
+    authenticated_events: true
+  - login: hubot
+    poll_interval: 30m

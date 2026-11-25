@@ -1,0 +1,8 @@
+{$ARCHIVE_DOMAIN} {
+	basic_auth {
+		{$ARCHIVE_USERNAME} {$ARCHIVE_PASSWORD_HASH}
+	}
+	reverse_proxy panel:8765 {
+		header_up Host localhost:8765
+	}
+}

@@ -1,0 +1,34 @@
+# Local configuration and credentials
+/config.yaml
+/config.yml
+/archive-config/
+.env
+.env.*
+*.pem
+*.key
+
+# Archive data, including alternate data directories
+/data/
+archive.sqlite
+archive.sqlite-*
+mirror.git/
+ref-snapshot
+archive.log
+archive.log.[12]
+
+# Build output and local caches
+/.gocache/
+/bin/
+/dist/
+/github-archive
+/github-archive-panel
+*.exe
+*.test
+*.bundle
+coverage.out
+
+# Editor and OS files
+/.idea/
+/.vscode/
+Thumbs.db
+.DS_Store

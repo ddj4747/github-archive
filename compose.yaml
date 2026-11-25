@@ -1,0 +1,34 @@
+services:
+  archive:
+    build:
+      context: .
+      args:
+        GO_VERSION: ${GO_VERSION:-1.27.4}
+    image: github-archive:local
+    restart: unless-stopped
+    environment:
+      - GITHUB_TOKEN
+    volumes:
+      - ./archive-config:/workspace
+      - ./data:/workspace/data
+    command: ["github-archive", "-config", "/workspace/config.yaml"]
+    networks: [archive_net]
+
+  panel:
+    image: github-archive:local
+    build:
+      context: .
+      args:
+        GO_VERSION: ${GO_VERSION:-1.27.4}
+    restart: unless-stopped
+    volumes:
+      - ./archive-config:/workspace
+      - ./data:/workspace/data
+    command: ["github-archive-panel", "-docker", "-listen", "0.0.0.0:8765", "-config", "/workspace/config.yaml"]
+    ports:
+      - "127.0.0.1:8765:8765"
+    networks: [panel_net]
+
+networks:
+  archive_net:
+  panel_net:
