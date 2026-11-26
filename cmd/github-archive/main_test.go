@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -89,6 +90,27 @@ func TestRunInitializesAndCancels(t *testing.T) {
 		return nil
 	}); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestRunWithoutToken(t *testing.T) {
+	t.Setenv("ARCHIVE_TEST_TOKEN", "")
+	root := t.TempDir()
+	path := filepath.Join(root, "config.yaml")
+	contents := "token_env: ARCHIVE_TEST_TOKEN\ndata_root: '" + filepath.ToSlash(filepath.Join(root, "data")) + "'\nusers:\n  - login: octocat\n"
+	if err := os.WriteFile(path, []byte(contents), 0600); err != nil {
+		t.Fatal(err)
+	}
+	old := runLoop
+	defer func() { runLoop = old }()
+	runLoop = func(_ context.Context, _ string, _ []model.Repository, _ []model.User, token string, _ *store.Store, client *github.Client) error {
+		if token != "" || client == nil {
+			t.Errorf("expected an unauthenticated client")
+		}
+		return fmt.Errorf("test collector error")
+	}
+	if err := Run(context.Background(), path); err == nil || err.Error() != "test collector error" {
+		t.Fatalf("unexpected startup result: %v", err)
 	}
 }
 

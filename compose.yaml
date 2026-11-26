@@ -10,7 +10,11 @@ services:
       - GITHUB_TOKEN
     volumes:
       - ./archive-config:/workspace
-      - ./data:/workspace/data
+      - type: bind
+        source: ${ARCHIVE_DATA_DIR:-./data}
+        target: /workspace/data
+        bind:
+          create_host_path: true
     command: ["github-archive", "-config", "/workspace/config.yaml"]
     networks: [archive_net]
 
@@ -23,7 +27,11 @@ services:
     restart: unless-stopped
     volumes:
       - ./archive-config:/workspace
-      - ./data:/workspace/data
+      - type: bind
+        source: ${ARCHIVE_DATA_DIR:-./data}
+        target: /workspace/data
+        bind:
+          create_host_path: true
     command: ["github-archive-panel", "-docker", "-listen", "0.0.0.0:8765", "-config", "/workspace/config.yaml"]
     ports:
       - "127.0.0.1:8765:8765"

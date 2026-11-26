@@ -98,8 +98,12 @@ func gitEnv(token string) []string {
 	// password. Keep the header in the child environment, never the command
 	// line or repository configuration. An empty helper prevents Git from
 	// consulting or erasing unrelated saved credentials on authentication failure.
-	encoded := base64.StdEncoding.EncodeToString([]byte("x-access-token:" + token))
-	return append(env, "GIT_TERMINAL_PROMPT=0", "GIT_HTTP_LOW_SPEED_LIMIT=1", "GIT_HTTP_LOW_SPEED_TIME=120", "GIT_CONFIG_COUNT=5", "GIT_CONFIG_KEY_0=http.extraheader", "GIT_CONFIG_VALUE_0=Authorization: Basic "+encoded, "GIT_CONFIG_KEY_1=credential.helper", "GIT_CONFIG_VALUE_1=", "GIT_CONFIG_KEY_2=gc.auto", "GIT_CONFIG_VALUE_2=0", "GIT_CONFIG_KEY_3=gc.autopacklimit", "GIT_CONFIG_VALUE_3=0", "GIT_CONFIG_KEY_4=fetch.prune", "GIT_CONFIG_VALUE_4=false")
+	header := ""
+	if token != "" {
+		encoded := base64.StdEncoding.EncodeToString([]byte("x-access-token:" + token))
+		header = "Authorization: Basic " + encoded
+	}
+	return append(env, "GIT_TERMINAL_PROMPT=0", "GIT_HTTP_LOW_SPEED_LIMIT=1", "GIT_HTTP_LOW_SPEED_TIME=120", "GIT_CONFIG_COUNT=5", "GIT_CONFIG_KEY_0=http.extraheader", "GIT_CONFIG_VALUE_0="+header, "GIT_CONFIG_KEY_1=credential.helper", "GIT_CONFIG_VALUE_1=", "GIT_CONFIG_KEY_2=gc.auto", "GIT_CONFIG_VALUE_2=0", "GIT_CONFIG_KEY_3=gc.autopacklimit", "GIT_CONFIG_VALUE_3=0", "GIT_CONFIG_KEY_4=fetch.prune", "GIT_CONFIG_VALUE_4=false")
 }
 
 func runGit(ctx context.Context, dir, token string, stdout io.Writer, args ...string) error {

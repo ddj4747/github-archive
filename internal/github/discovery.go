@@ -29,6 +29,10 @@ func DiscoverRepositories(ctx context.Context, c *Client, login, cursor string) 
 	if err != nil {
 		return nil, "", err
 	}
+	// A persisted authenticated scan may be resumed after the token is removed.
+	if mode == "visible" && c.token == "" {
+		return nil, "", nil
+	}
 	path := "/users/" + login + "/repos"
 	query := url.Values{"per_page": {"100"}, "page": {strconv.Itoa(page)}, "sort": {"full_name"}, "direction": {"asc"}}
 	if mode == "public" {
@@ -77,7 +81,7 @@ func DiscoverRepositories(ctx context.Context, c *Client, login, cursor string) 
 		}
 		return repos, fmt.Sprintf("%s:%d", mode, nextPage), nil
 	}
-	if mode == "public" {
+	if mode == "public" && c.token != "" {
 		return repos, "visible:1", nil
 	}
 	return repos, "", nil

@@ -65,7 +65,6 @@ func TestLoadValidation(t *testing.T) {
 		"negative duration":   strings.Replace(valid, "9m", "-1s", 1),
 		"duplicate":           valid + "  - login: ABC\n",
 		"traversal":           strings.Replace(valid, "owner: A", "owner: ..", 1),
-		"missing env":         strings.Replace(valid, "TEST_GITHUB_ARCHIVE_TOKEN", "NO_SUCH_ARCHIVE_ENVIRONMENT", 1),
 		"invalid discovery":   strings.Replace(valid, "login: abc", "login: abc\n    discover_repositories: invalid", 1),
 		"invalid auth events": strings.Replace(valid, "login: abc", "login: abc\n    authenticated_events: invalid", 1),
 		"invalid exclusion":   strings.Replace(valid, "login: abc", "login: abc\n    exclude_repositories: ['../bad']", 1),
@@ -79,7 +78,7 @@ func TestLoadValidation(t *testing.T) {
 	}
 }
 
-func TestLoadForEditingDoesNotRequireToken(t *testing.T) {
+func TestLoadDoesNotRequireToken(t *testing.T) {
 	t.Setenv("ARCHIVE_PANEL_TOKEN_UNSET", "")
 	path := filepath.Join(t.TempDir(), "config.yaml")
 	if err := os.WriteFile(path, []byte("token_env: ARCHIVE_PANEL_TOKEN_UNSET\ndata_root: data\nusers:\n  - login: alice\n"), 0600); err != nil {
@@ -88,7 +87,14 @@ func TestLoadForEditingDoesNotRequireToken(t *testing.T) {
 	if _, err := LoadForEditing(path); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Load(path); err == nil {
-		t.Fatal("archiver accepted empty token")
+	if _, err := Load(path); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte("data_root: data\nusers:\n  - login: alice\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	got, err := Load(path)
+	if err != nil || got.TokenEnv != "GITHUB_TOKEN" {
+		t.Fatalf("default token environment: %+v, %v", got, err)
 	}
 }

@@ -37,3 +37,20 @@ func TestGitAuthenticationHeaderAndCredentialIsolation(t *testing.T) {
 		t.Fatal("credential helper was not disabled")
 	}
 }
+
+func TestGitWithoutTokenSendsNoAuthorization(t *testing.T) {
+	var authorization string
+	var requested bool
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requested = true
+		authorization = r.Header.Get("Authorization")
+		http.Error(w, "not found", http.StatusNotFound)
+	}))
+	defer server.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_ = runGit(ctx, "", "", nil, "ls-remote", server.URL)
+	if !requested || authorization != "" {
+		t.Fatalf("unexpected Authorization header: %q", authorization)
+	}
+}

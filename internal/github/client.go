@@ -48,7 +48,7 @@ func (e *HTTPStatusError) Error() string {
 
 func New(token string) (*Client, error) {
 	if strings.TrimSpace(token) == "" {
-		return nil, errors.New("GitHub token is empty")
+		token = ""
 	}
 	return newClient(token)
 }

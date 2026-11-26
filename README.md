@@ -12,9 +12,16 @@ browse retained commits after a branch deletion or force-push.
 ## Getting started
 
 The quickest setup uses Docker Compose. Follow the [Docker setup guide](DOCKER.md)
-to configure your targets, supply a GitHub token, and open the panel at
+to configure your targets and open the panel at
 [`http://127.0.0.1:8765`](http://127.0.0.1:8765). The guide also covers an
 authenticated HTTPS deployment on your own server and domain.
+
+On Windows, double-click `StartDocker.bat` to start Docker Desktop if needed,
+build and start both services, and see the panel address. It creates
+`archive-config/config.yaml` only when it is missing. Configure your targets
+in that file or in the panel. A token is optional: set `GITHUB_TOKEN` in the
+launching environment if you need private access or higher API limits. See
+DOCKER.md for choosing a different host directory for the archive data.
 
 ### Run without Docker
 
@@ -25,21 +32,21 @@ under their own directories. User monitoring reads public events by default.
 You can also enable separate repository discovery and authenticated event
 fetchers for individual users.
 
-Copy `config.example.yaml` to `config.yaml`, edit the target lists and data
-directory, and set the environment variable named by `token_env` to a GitHub
-token. The token must have the access needed for the configured repositories.
-Do not put the token in the YAML file. For example, in PowerShell:
+Copy `config.example.yaml` to `config.yaml` and edit the target lists and data
+directory. For private repositories or higher API limits, optionally set the
+environment variable named by `token_env` to a GitHub token with the required
+access. Do not put the token in the YAML file. For example, in PowerShell:
 
 ```powershell
 $env:PATH = 'C:\Program Files\Go\bin;' + $env:PATH
-# Set GITHUB_TOKEN in your environment before starting.
+# Optionally set GITHUB_TOKEN in your environment before starting.
 go run -mod=readonly ./cmd/github-archive -config config.yaml
 ```
 
 On Windows, `powershell -NoProfile -ExecutionPolicy Bypass -File .\StartArchive.ps1`
-is an alternative. It uses the
-`GITHUB_TOKEN` environment variable when set, or a GitHub credential already
-saved by Git Credential Manager. If necessary, sign in first with
+is an alternative. It uses the `GITHUB_TOKEN` environment variable when set,
+or a GitHub credential already saved by Git Credential Manager; otherwise it
+uses unauthenticated public access. To save credentials, sign in first with
 `git credential-manager github login`. The script passes the credential to the
 archiver in its process environment and does not write it to the configuration.
 If your configuration uses a different token environment variable, pass
@@ -63,8 +70,8 @@ users:
     authenticated_events: true
 ```
 
-Discovery scans the user's public repositories and filters the repositories
-visible to the token by owner. The latter can include private repositories the
+Discovery scans the user's public repositories and, when a token is available,
+filters the repositories visible to the token by owner. The latter can include private repositories the
 token is permitted to list. It does not discover repositories owned by other
 accounts where the user merely contributed. Each discovered repository is
 queued for the same event and Git mirror polling as an explicitly configured
@@ -79,7 +86,8 @@ unavailable, the error is logged and public repository scans continue.
 events endpoint with its own cursor. It can include private events only when
 the token authenticates as that same user and has the required access (for
 fine-grained tokens, Events user permission may be needed). Other users' events
-remain public. Both settings are optional and default to false.
+remain public. Without a token, authenticated event polling is skipped. Both
+settings are optional and default to false.
 
 On the first poll, the mirror fetches the accessible heads and tags and the
 events API supplies only its recent results, up to ten pages. Subsequent polls

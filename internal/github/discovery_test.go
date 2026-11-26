@@ -110,3 +110,23 @@ func TestDiscoveryRejectsBadContinuationAndPrivateEndpointErrors(t *testing.T) {
 		}
 	})
 }
+
+func TestPublicDiscoverySkipsAuthenticatedListing(t *testing.T) {
+	requests := 0
+	c, _ := testClient(t, func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		if r.URL.Path != "/users/Alice/repos" || r.Header.Get("Authorization") != "" {
+			t.Errorf("unexpected public request: %s", r.URL.Path)
+		}
+		fmt.Fprint(w, `[{"name":"repo","owner":{"login":"Alice"}}]`)
+	})
+	c.token = ""
+	repos, next, err := DiscoverRepositories(context.Background(), c, "Alice", "")
+	if err != nil || len(repos) != 1 || next != "" || requests != 1 {
+		t.Fatalf("repos=%v next=%q requests=%d err=%v", repos, next, requests, err)
+	}
+	_, next, err = DiscoverRepositories(context.Background(), c, "Alice", "visible:2")
+	if err != nil || next != "" || requests != 1 {
+		t.Fatalf("resuming visible scan: next=%q requests=%d err=%v", next, requests, err)
+	}
+}

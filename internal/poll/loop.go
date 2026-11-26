@@ -39,7 +39,7 @@ func Run(ctx context.Context, dataRoot string, repos []model.Repository, users [
 	for _, u := range users {
 		u := u
 		targets = append(targets, target{interval: u.PollInterval, dir: func() (string, error) { return u.UserDir(dataRoot) }, poll: func(pollCtx context.Context) error { return runUser(pollCtx, dataRoot, token, u, db, client) }})
-		if u.AuthenticatedEvents {
+		if u.AuthenticatedEvents && token != "" {
 			targets = append(targets, target{interval: u.PollInterval, dir: func() (string, error) { return u.UserDir(dataRoot) }, poll: func(pollCtx context.Context) error {
 				return runAuthenticatedUser(pollCtx, dataRoot, token, u, db, client)
 			}})

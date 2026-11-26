@@ -9,7 +9,7 @@ $originalToken = [Environment]::GetEnvironmentVariable($TokenEnv, 'Process')
 $originalPrompt = [Environment]::GetEnvironmentVariable('GIT_TERMINAL_PROMPT', 'Process')
 $originalInteractive = [Environment]::GetEnvironmentVariable('GCM_INTERACTIVE', 'Process')
 try {
-    if ([string]::IsNullOrWhiteSpace($originalToken)) {
+    if ([string]::IsNullOrWhiteSpace($originalToken) -and (Get-Command git -ErrorAction SilentlyContinue)) {
         $env:GIT_TERMINAL_PROMPT = '0'
         $env:GCM_INTERACTIVE = 'Never'
         $credentialInput = "protocol=https`nhost=github.com`n`n"
@@ -17,8 +17,9 @@ try {
         try { $credentialLines = $credentialInput | git credential fill 2>$null }
         finally { $ErrorActionPreference = 'Stop' }
         $passwordLine = $credentialLines | Where-Object { $_ -like 'password=*' } | Select-Object -First 1
-        if (-not $passwordLine) { throw 'No GitHub credential found. Run git credential-manager github login, or set the token environment variable before starting.' }
-        [Environment]::SetEnvironmentVariable($TokenEnv, $passwordLine.Substring(9), 'Process')
+        if ($passwordLine) {
+            [Environment]::SetEnvironmentVariable($TokenEnv, $passwordLine.Substring(9), 'Process')
+        }
     }
     $goExe = Join-Path $env:ProgramFiles 'Go\bin\go.exe'
     if (-not (Test-Path -LiteralPath $goExe)) { throw 'Go was not found at the expected location.' }

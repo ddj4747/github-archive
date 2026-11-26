@@ -57,7 +57,7 @@ func Run(ctx context.Context, configPath string) error {
 	}
 	token := os.Getenv(cfg.TokenEnv)
 	if strings.TrimSpace(token) == "" {
-		return fmt.Errorf("environment variable %s is empty", cfg.TokenEnv)
+		token = ""
 	}
 	state, err := prepare(cfg, token)
 	if err != nil {
@@ -81,7 +81,11 @@ func Run(ctx context.Context, configPath string) error {
 			// The deferred cleanup must not wait a second time on this channel.
 			done = closedResult()
 			if err != nil {
-				return fmt.Errorf("%s", strings.ReplaceAll(err.Error(), state.token, "[redacted]"))
+				message := err.Error()
+				if state.token != "" {
+					message = strings.ReplaceAll(message, state.token, "[redacted]")
+				}
+				return fmt.Errorf("%s", message)
 			}
 			return nil
 		case <-heartbeat.C:
@@ -98,6 +102,9 @@ func Run(ctx context.Context, configPath string) error {
 				continue
 			}
 			nextToken := os.Getenv(nextConfig.TokenEnv)
+			if strings.TrimSpace(nextToken) == "" {
+				nextToken = ""
+			}
 			if reflect.DeepEqual(state.config, nextConfig) && state.token == nextToken {
 				invalidReported = false
 				continue

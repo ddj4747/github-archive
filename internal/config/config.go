@@ -75,16 +75,15 @@ func hasToken(n *yaml.Node) bool {
 }
 
 func Load(path string) (Config, error) {
-	return load(path, true)
+	return load(path)
 }
 
-// LoadForEditing validates a panel configuration without needing the secret
-// token in the panel process. The archiver itself always uses Load.
+// LoadForEditing validates a panel configuration without reading credentials.
 func LoadForEditing(path string) (Config, error) {
-	return load(path, false)
+	return load(path)
 }
 
-func load(path string, requireToken bool) (Config, error) {
+func load(path string) (Config, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return Config{}, err
@@ -109,8 +108,8 @@ func load(path string, requireToken bool) (Config, error) {
 		}
 		return Config{}, fmt.Errorf("invalid configuration: %w", err)
 	}
-	if strings.TrimSpace(f.TokenEnv) == "" || (requireToken && strings.TrimSpace(os.Getenv(f.TokenEnv)) == "") {
-		return Config{}, fmt.Errorf("token environment variable is missing or empty")
+	if strings.TrimSpace(f.TokenEnv) == "" {
+		f.TokenEnv = "GITHUB_TOKEN"
 	}
 	if strings.TrimSpace(f.DataRoot) == "" {
 		return Config{}, fmt.Errorf("data_root is required")
