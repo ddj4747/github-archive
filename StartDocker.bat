@@ -1,6 +1,7 @@
 @echo off
 setlocal
 set "ARCHIVE_LAUNCHER_PATH=%~f0"
+if not "%~1"=="" set "ARCHIVE_PROJECT_DIR=%~1"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$parts = [IO.File]::ReadAllText($env:ARCHIVE_LAUNCHER_PATH) -split '(?m)^:__POWERSHELL__\r?$', 2; if ($parts.Count -ne 2) { Write-Error 'Launcher script is incomplete.'; exit 1 }; & ([scriptblock]::Create($parts[1])); exit $LASTEXITCODE"
 set "LAUNCHER_EXIT=%ERRORLEVEL%"
 echo.
@@ -10,7 +11,18 @@ exit /b %LAUNCHER_EXIT%
 :__POWERSHELL__
 $ErrorActionPreference = 'Stop'
 try {
-    Set-Location -LiteralPath (Split-Path -Parent $env:ARCHIVE_LAUNCHER_PATH)
+    $projectDir = $env:ARCHIVE_PROJECT_DIR
+    if ([string]::IsNullOrWhiteSpace($projectDir)) {
+        $projectDir = Split-Path -Parent $env:ARCHIVE_LAUNCHER_PATH
+    }
+    if (-not (Test-Path -LiteralPath $projectDir -PathType Container)) {
+        throw "Project directory not found: $projectDir"
+    }
+    Set-Location -LiteralPath $projectDir
+    if (-not (Test-Path -LiteralPath 'compose.yaml' -PathType Leaf)) {
+        throw "No compose.yaml found in project directory: $projectDir"
+    }
+    Write-Host "Project directory: $((Get-Location).Path)"
 
     if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
         throw 'Docker was not found. Install Docker Desktop and reopen this launcher.'

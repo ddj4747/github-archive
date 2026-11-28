@@ -17,7 +17,12 @@ to configure your targets and open the panel at
 authenticated HTTPS deployment on your own server and domain.
 
 On Windows, double-click `StartDocker.bat` to start Docker Desktop if needed,
-build and start both services, and see the panel address. It creates
+build and start both services, and see the panel address. To launch a project
+in another folder, set `ARCHIVE_PROJECT_DIR` to that folder before launching,
+for example in PowerShell: `$env:ARCHIVE_PROJECT_DIR = 'C:\path\to\project'`.
+You can also pass the folder as an argument: `StartDocker.bat "C:\path\to\project"`.
+The argument takes precedence; if neither is set, it uses the folder containing
+the batch file. It creates
 `archive-config/config.yaml` only when it is missing. Configure your targets
 in that file or in the panel. A token is optional: set `GITHUB_TOKEN` in the
 launching environment if you need private access or higher API limits. See
