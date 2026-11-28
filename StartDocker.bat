@@ -24,6 +24,15 @@ try {
     }
     Write-Host "Project directory: $((Get-Location).Path)"
 
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        throw 'Git was not found. Install Git for Windows and reopen this launcher.'
+    }
+    Write-Host 'Pulling the latest changes from the configured GitHub branch...'
+    & git pull --ff-only
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Git pull failed. Check the network and make sure the local branch can fast-forward.'
+    }
+
     if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
         throw 'Docker was not found. Install Docker Desktop and reopen this launcher.'
     }

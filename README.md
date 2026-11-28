@@ -16,8 +16,11 @@ to configure your targets and open the panel at
 [`http://127.0.0.1:8765`](http://127.0.0.1:8765). The guide also covers an
 authenticated HTTPS deployment on your own server and domain.
 
-On Windows, double-click `StartDocker.bat` to start Docker Desktop if needed,
-build and start both services, and see the panel address. To launch a project
+On Windows, double-click `StartDocker.bat` to pull the latest changes from the
+configured GitHub branch, start Docker Desktop if needed, build and start both
+services, and see the panel address. The pull is fast-forward-only; if the local
+branch has diverged or has conflicting edits, the launcher stops and reports the
+problem. To launch a project
 in another folder, set `ARCHIVE_PROJECT_DIR` to that folder before launching,
 for example in PowerShell: `$env:ARCHIVE_PROJECT_DIR = 'C:\path\to\project'`.
 You can also pass the folder as an argument: `StartDocker.bat "C:\path\to\project"`.
